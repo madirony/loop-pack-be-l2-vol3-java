@@ -1,5 +1,6 @@
 package com.loopers.domain.member.vo;
 
+import com.loopers.domain.member.PasswordEncoder;
 import com.loopers.support.error.CoreException;
 import com.loopers.support.error.ErrorType;
 import jakarta.persistence.Embeddable;
@@ -11,38 +12,44 @@ import lombok.NoArgsConstructor;
 @Embeddable
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class Password {
+
+    private static final int MIN_LENGTH = 8;
+    private static final int MAX_LENGTH = 16;
+    private static final String COMPLEXITY_REGEX = "^(?=.*[a-zA-Z])(?=.*\\d)(?=.*[!@#$%^&*()_+\\-=\\[\\]{};':\"\\\\|,.<>/?]).+$";
+
     private String value;
 
-    public Password(String pw, String birth) {
-        validate(pw, birth);
-        this.value = pw;
+    private Password(String encodedValue) {
+        this.value = encodedValue;
     }
 
-    private void validate(String pw, String birth) {
-        if(pw == null || pw.length() < 8 || pw.length() > 16) {
-            throw new CoreException(ErrorType.BAD_REQUEST, "비밀번호는 8~16자여야 합니다.");
+    public static Password of(String rawPassword, BirthDate birthDate) {
+        validate(rawPassword, birthDate);
+        return new Password(rawPassword);
+    }
+
+    public static Password ofEncoded(String encodedValue) {
+        return new Password(encodedValue);
+    }
+
+    private static void validate(String rawPassword, BirthDate birthDate) {
+        if (rawPassword == null || rawPassword.length() < MIN_LENGTH || rawPassword.length() > MAX_LENGTH) {
+            throw new CoreException(ErrorType.BAD_REQUEST, "비밀번호는 " + MIN_LENGTH + "~" + MAX_LENGTH + "자여야 합니다.");
         }
 
-        String regex = "^(?=.*[a-zA-Z])(?=.*\\d)(?=.*[!@#$%^&*()_+\\-=\\[\\]{};':\"\\\\|,.<>/?]).+$";
-        if (!pw.matches(regex)) {
+        if (!rawPassword.matches(COMPLEXITY_REGEX)) {
             throw new CoreException(ErrorType.BAD_REQUEST, "비밀번호는 영문, 숫자, 특수문자를 포함해야 합니다.");
         }
 
-        checkBirthPatterns(pw, birth);
+        checkBirthPatterns(rawPassword, birthDate);
     }
 
-    private void checkBirthPatterns(String rawPassword, String birth) {
-        String cleanBirth = birth.replaceAll("-", "");
-        if (cleanBirth.length() != 8) {
-            throw new CoreException(ErrorType.BAD_REQUEST, "생년월일 형식이 올바르지 않습니다.");
-        }
+    private static void checkBirthPatterns(String rawPassword, BirthDate birthDate) {
+        String plainBirth = birthDate.toPlainString();
 
-        String year = cleanBirth.substring(0, 4);
-        String month = cleanBirth.substring(4, 6);
-        String day = cleanBirth.substring(6, 8);
-
-        String yy = year.substring(2);
-        String mmdd = month + day;
+        String year = plainBirth.substring(0, 4);
+        String yy = plainBirth.substring(2, 4);
+        String mmdd = plainBirth.substring(4, 8);
 
         String[] blackListPatterns = {
                 year,
@@ -57,5 +64,9 @@ public class Password {
                 throw new CoreException(ErrorType.BAD_REQUEST, "비밀번호에 생년월일과 관련된 숫자(" + pattern + ")를 포함할 수 없습니다.");
             }
         }
+    }
+
+    public boolean matches(String rawPassword, PasswordEncoder encoder) {
+        return encoder.matches(rawPassword, this.value);
     }
 }

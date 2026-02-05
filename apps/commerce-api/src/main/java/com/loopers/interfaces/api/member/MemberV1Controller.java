@@ -1,7 +1,7 @@
 package com.loopers.interfaces.api.member;
 
+import com.loopers.application.member.MemberFacade;
 import com.loopers.domain.member.Member;
-import com.loopers.domain.member.MemberService;
 import com.loopers.interfaces.api.ApiResponse;
 import com.loopers.interfaces.resolver.LoginUser;
 import lombok.RequiredArgsConstructor;
@@ -17,11 +17,11 @@ import org.springframework.web.bind.annotation.RestController;
 @RequiredArgsConstructor
 public class MemberV1Controller {
 
-    private final MemberService memberService;
+    private final MemberFacade memberFacade;
 
     @PostMapping("/signup")
     public ApiResponse<MemberV1Dto.SignupResponse> signup(@RequestBody MemberV1Dto.SignupRequest request) {
-        Member member = memberService.signup(request.toCommand());
+        Member member = memberFacade.signup(request.toCommand());
         return ApiResponse.success(MemberV1Dto.SignupResponse.from(member));
     }
 
@@ -35,7 +35,7 @@ public class MemberV1Controller {
             @LoginUser Member member,
             @RequestBody MemberV1Dto.ChangePasswordRequest body
     ) {
-        memberService.changePassword(member, body.currentPassword(), body.newPassword());
+        memberFacade.changePassword(member, body.currentPassword(), body.newPassword());
         return ApiResponse.success();
     }
 }

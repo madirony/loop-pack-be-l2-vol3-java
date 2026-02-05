@@ -8,17 +8,13 @@ import com.loopers.domain.member.vo.Password;
 import com.loopers.support.error.CoreException;
 import com.loopers.support.error.ErrorType;
 import lombok.RequiredArgsConstructor;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
-@Service
 @RequiredArgsConstructor
 public class MemberService {
 
     private final MemberRepository memberRepository;
     private final PasswordEncoder passwordEncoder;
 
-    @Transactional
     public Member signup(SignupCommand command) {
         MemberId memberId = new MemberId(command.memberId());
         BirthDate birthDate = new BirthDate(command.birthDate());
@@ -27,7 +23,7 @@ public class MemberService {
             throw new CoreException(ErrorType.CONFLICT, "이미 존재하는 회원 ID입니다.");
         }
 
-        Password password = Password.of(command.password(), birthDate);
+        Password.of(command.password(), birthDate);
         String encodedPassword = passwordEncoder.encode(command.password());
 
         Member member = new Member(
@@ -41,7 +37,6 @@ public class MemberService {
         return memberRepository.save(member);
     }
 
-    @Transactional
     public void changePassword(Member member, String currentPassword, String newPassword) {
         member.updatePassword(currentPassword, newPassword, passwordEncoder);
     }

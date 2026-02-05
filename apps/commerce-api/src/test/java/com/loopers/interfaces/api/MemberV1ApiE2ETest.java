@@ -1,6 +1,13 @@
 package com.loopers.interfaces.api;
 
+import com.loopers.domain.member.Member;
 import com.loopers.domain.member.MemberRepository;
+import com.loopers.domain.member.PasswordEncoder;
+import com.loopers.domain.member.vo.BirthDate;
+import com.loopers.domain.member.vo.Email;
+import com.loopers.domain.member.vo.MemberId;
+import com.loopers.domain.member.vo.Name;
+import com.loopers.domain.member.vo.Password;
 import com.loopers.interfaces.api.member.MemberV1Dto;
 import com.loopers.utils.DatabaseCleanUp;
 import org.junit.jupiter.api.AfterEach;
@@ -25,19 +32,23 @@ import static org.junit.jupiter.api.Assertions.assertAll;
 class MemberV1ApiE2ETest {
 
     private static final String SIGNUP_ENDPOINT = "/api/v1/members/signup";
+    private static final String ME_ENDPOINT = "/api/v1/members/me";
 
     private final TestRestTemplate testRestTemplate;
     private final MemberRepository memberRepository;
+    private final PasswordEncoder passwordEncoder;
     private final DatabaseCleanUp databaseCleanUp;
 
     @Autowired
     public MemberV1ApiE2ETest(
             TestRestTemplate testRestTemplate,
             MemberRepository memberRepository,
+            PasswordEncoder passwordEncoder,
             DatabaseCleanUp databaseCleanUp
     ) {
         this.testRestTemplate = testRestTemplate;
         this.memberRepository = memberRepository;
+        this.passwordEncoder = passwordEncoder;
         this.databaseCleanUp = databaseCleanUp;
     }
 
@@ -173,6 +184,79 @@ class MemberV1ApiE2ETest {
             assertAll(
                     () -> assertThat(response.getStatusCode()).isEqualTo(HttpStatus.BAD_REQUEST),
                     () -> assertThat(response.getBody().meta().result()).isEqualTo(ApiResponse.Metadata.Result.FAIL)
+            );
+        }
+    }
+
+    @DisplayName("GET /api/v1/members/me")
+    @Nested
+    class Me {
+
+        @DisplayName("인증된 사용자가 내 정보를 조회하면 마스킹된 이름으로 응답받는다.")
+        @Test
+        void me_success_with_masked_name() {
+            // arrange
+            String rawPassword = "Password1!";
+            String encodedPassword = passwordEncoder.encode(rawPassword);
+            Member member = new Member(
+                    new MemberId("testuser"),
+                    Password.ofEncoded(encodedPassword),
+                    new Name("홍길동"),
+                    new Email("test@test.com"),
+                    new BirthDate("1997-01-01")
+            );
+            memberRepository.save(member);
+
+            HttpHeaders headers = new HttpHeaders();
+            headers.set("X-Loopers-LoginId", "testuser");
+            headers.set("X-Loopers-LoginPw", rawPassword);
+            HttpEntity<Void> httpEntity = new HttpEntity<>(headers);
+
+            // act
+            ParameterizedTypeReference<ApiResponse<MemberV1Dto.MeResponse>> responseType = new ParameterizedTypeReference<>() {};
+            ResponseEntity<ApiResponse<MemberV1Dto.MeResponse>> response =
+                    testRestTemplate.exchange(ME_ENDPOINT, HttpMethod.GET, httpEntity, responseType);
+
+            // assert
+            assertAll(
+                    () -> assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK),
+                    () -> assertThat(response.getBody().meta().result()).isEqualTo(ApiResponse.Metadata.Result.SUCCESS),
+                    () -> assertThat(response.getBody().data().memberId()).isEqualTo("testuser"),
+                    () -> assertThat(response.getBody().data().name()).isEqualTo("홍길*"),
+                    () -> assertThat(response.getBody().data().email()).isEqualTo("test@test.com"),
+                    () -> assertThat(response.getBody().data().birthDate()).isEqualTo("1997-01-01")
+            );
+        }
+
+        @DisplayName("한 글자 이름인 경우 전체가 마스킹된다.")
+        @Test
+        void me_success_with_single_char_name() {
+            // arrange
+            String rawPassword = "Password1!";
+            String encodedPassword = passwordEncoder.encode(rawPassword);
+            Member member = new Member(
+                    new MemberId("testuser2"),
+                    Password.ofEncoded(encodedPassword),
+                    new Name("홍"),
+                    new Email("test2@test.com"),
+                    new BirthDate("1997-01-01")
+            );
+            memberRepository.save(member);
+
+            HttpHeaders headers = new HttpHeaders();
+            headers.set("X-Loopers-LoginId", "testuser2");
+            headers.set("X-Loopers-LoginPw", rawPassword);
+            HttpEntity<Void> httpEntity = new HttpEntity<>(headers);
+
+            // act
+            ParameterizedTypeReference<ApiResponse<MemberV1Dto.MeResponse>> responseType = new ParameterizedTypeReference<>() {};
+            ResponseEntity<ApiResponse<MemberV1Dto.MeResponse>> response =
+                    testRestTemplate.exchange(ME_ENDPOINT, HttpMethod.GET, httpEntity, responseType);
+
+            // assert
+            assertAll(
+                    () -> assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK),
+                    () -> assertThat(response.getBody().data().name()).isEqualTo("*")
             );
         }
     }

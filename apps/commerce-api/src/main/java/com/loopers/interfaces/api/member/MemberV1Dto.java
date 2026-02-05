@@ -36,4 +36,20 @@ public class MemberV1Dto {
             );
         }
     }
+
+    public record MeResponse(
+            String memberId,
+            String name,
+            String email,
+            String birthDate
+    ) {
+        public static MeResponse from(Member member) {
+            return new MeResponse(
+                    member.getMemberId().getValue(),
+                    member.getName().masked(),
+                    member.getEmail().getValue(),
+                    member.getBirthDate().getValue()
+            );
+        }
+    }
 }

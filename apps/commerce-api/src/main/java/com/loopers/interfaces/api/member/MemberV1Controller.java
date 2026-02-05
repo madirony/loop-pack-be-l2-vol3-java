@@ -3,7 +3,7 @@ package com.loopers.interfaces.api.member;
 import com.loopers.domain.member.Member;
 import com.loopers.domain.member.MemberService;
 import com.loopers.interfaces.api.ApiResponse;
-import jakarta.servlet.http.HttpServletRequest;
+import com.loopers.interfaces.resolver.LoginUser;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -26,17 +26,15 @@ public class MemberV1Controller {
     }
 
     @GetMapping("/me")
-    public ApiResponse<MemberV1Dto.MeResponse> me(HttpServletRequest request) {
-        Member member = (Member) request.getAttribute("authenticatedMember");
+    public ApiResponse<MemberV1Dto.MeResponse> me(@LoginUser Member member) {
         return ApiResponse.success(MemberV1Dto.MeResponse.from(member));
     }
 
     @PutMapping("/me/password")
     public ApiResponse<Object> changePassword(
-            HttpServletRequest request,
+            @LoginUser Member member,
             @RequestBody MemberV1Dto.ChangePasswordRequest body
     ) {
-        Member member = (Member) request.getAttribute("authenticatedMember");
         memberService.changePassword(member, body.currentPassword(), body.newPassword());
         return ApiResponse.success();
     }

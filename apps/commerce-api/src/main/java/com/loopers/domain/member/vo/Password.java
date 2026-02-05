@@ -69,4 +69,19 @@ public class Password {
     public boolean matches(String rawPassword, PasswordEncoder encoder) {
         return encoder.matches(rawPassword, this.value);
     }
+
+    public Password change(String currentPassword, String newPassword,
+                           BirthDate birthDate, PasswordEncoder encoder) {
+        if (!matches(currentPassword, encoder)) {
+            throw new CoreException(ErrorType.BAD_REQUEST, "현재 비밀번호가 일치하지 않습니다.");
+        }
+
+        Password.of(newPassword, birthDate);
+
+        if (matches(newPassword, encoder)) {
+            throw new CoreException(ErrorType.BAD_REQUEST, "기존 비밀번호와 동일한 비밀번호는 사용할 수 없습니다.");
+        }
+
+        return Password.ofEncoded(encoder.encode(newPassword));
+    }
 }

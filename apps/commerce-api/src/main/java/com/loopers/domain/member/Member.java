@@ -6,8 +6,6 @@ import com.loopers.domain.member.vo.Email;
 import com.loopers.domain.member.vo.MemberId;
 import com.loopers.domain.member.vo.Name;
 import com.loopers.domain.member.vo.Password;
-import com.loopers.support.error.CoreException;
-import com.loopers.support.error.ErrorType;
 import jakarta.persistence.AttributeOverride;
 import jakarta.persistence.Column;
 import jakarta.persistence.Embedded;
@@ -52,21 +50,6 @@ public class Member extends BaseEntity {
     }
 
     public void updatePassword(String currentPassword, String newPassword, PasswordEncoder encoder) {
-        if (!this.password.matches(currentPassword, encoder)) {
-            throw new CoreException(ErrorType.BAD_REQUEST, "현재 비밀번호가 일치하지 않습니다.");
-        }
-
-        Password newPw = Password.of(newPassword, this.birthDate);
-        String encodedNewPassword = encoder.encode(newPassword);
-
-        if (this.password.matches(newPassword, encoder)) {
-            throw new CoreException(ErrorType.BAD_REQUEST, "기존 비밀번호와 동일한 비밀번호는 사용할 수 없습니다.");
-        }
-
-        this.password = Password.ofEncoded(encodedNewPassword);
-    }
-
-    public String getMaskedName() {
-        return this.name.masked();
+        this.password = this.password.change(currentPassword, newPassword, this.birthDate, encoder);
     }
 }

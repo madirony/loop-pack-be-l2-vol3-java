@@ -25,16 +25,15 @@ public class Password {
         this.value = encodedValue;
     }
 
-    public static Password of(String rawPassword, BirthDate birthDate) {
-        validate(rawPassword, birthDate);
-        return new Password(rawPassword);
+    public static void validate(String rawPassword, BirthDate birthDate) {
+        validatePasswordPolicy(rawPassword, birthDate);
     }
 
     public static Password ofEncoded(String encodedValue) {
         return new Password(encodedValue);
     }
 
-    private static void validate(String rawPassword, BirthDate birthDate) {
+    private static void validatePasswordPolicy(String rawPassword, BirthDate birthDate) {
         if (rawPassword == null || rawPassword.length() < MIN_LENGTH || rawPassword.length() > MAX_LENGTH) {
             throw new CoreException(ErrorType.BAD_REQUEST, "비밀번호는 " + MIN_LENGTH + "~" + MAX_LENGTH + "자여야 합니다.");
         }
@@ -78,7 +77,7 @@ public class Password {
             throw new CoreException(ErrorType.BAD_REQUEST, "현재 비밀번호가 일치하지 않습니다.");
         }
 
-        Password.of(newPassword, birthDate);
+        Password.validate(newPassword, birthDate);
 
         if (matches(newPassword, encoder)) {
             throw new CoreException(ErrorType.BAD_REQUEST, "기존 비밀번호와 동일한 비밀번호는 사용할 수 없습니다.");

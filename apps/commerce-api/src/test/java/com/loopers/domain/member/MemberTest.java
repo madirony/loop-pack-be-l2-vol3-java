@@ -34,7 +34,8 @@ class MemberTest {
         // given
         MemberId memberId = new MemberId("user1");
         BirthDate birthDate = new BirthDate("1997-01-01");
-        Password password = Password.of("Valid123!", birthDate);
+        Password.validate("Valid123!", birthDate);
+        Password password = Password.ofEncoded(fakeEncoder.encode("Valid123!"));
         Name name = new Name("앤드류");
         Email email = new Email("test@test.com");
 

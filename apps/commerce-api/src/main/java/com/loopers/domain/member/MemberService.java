@@ -23,7 +23,7 @@ public class MemberService {
             throw new CoreException(ErrorType.CONFLICT, "이미 존재하는 회원 ID입니다.");
         }
 
-        Password.of(command.password(), birthDate);
+        Password.validate(command.password(), birthDate);
         String encodedPassword = passwordEncoder.encode(command.password());
 
         Member member = new Member(

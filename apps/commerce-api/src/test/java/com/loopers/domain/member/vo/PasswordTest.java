@@ -15,18 +15,15 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 class PasswordTest {
 
-    @DisplayName("비밀번호 정책(8~16자, 영문/숫자/특수문자 포함)을 준수하면 생성에 성공한다.")
+    @DisplayName("비밀번호 정책(8~16자, 영문/숫자/특수문자 포함)을 준수하면 검증에 성공한다.")
     @Test
-    void create_success() {
+    void validate_success() {
         // given
         String pw = "PassWord123!";
         BirthDate birthDate = new BirthDate("1997-01-01");
 
-        // when
-        Password password = Password.of(pw, birthDate);
-
-        // then
-        assertThat(password).isNotNull();
+        // when & then - 예외가 발생하지 않으면 성공
+        Password.validate(pw, birthDate);
     }
 
     @DisplayName("비밀번호 길이가 8자 미만이거나, 16자 초과면 예외가 발생한다.")
@@ -37,7 +34,7 @@ class PasswordTest {
         BirthDate birthDate = new BirthDate("1997-01-01");
 
         // when & then
-        assertThatThrownBy(() -> Password.of(invalidPw, birthDate))
+        assertThatThrownBy(() -> Password.validate(invalidPw, birthDate))
                 .isInstanceOf(CoreException.class)
                 .extracting("errorType").isEqualTo(ErrorType.BAD_REQUEST);
     }
@@ -50,7 +47,7 @@ class PasswordTest {
         BirthDate birthDate = new BirthDate("1997-01-01");
 
         // when & then
-        assertThatThrownBy(() -> Password.of(invalidPw, birthDate))
+        assertThatThrownBy(() -> Password.validate(invalidPw, birthDate))
                 .isInstanceOf(CoreException.class)
                 .hasMessageContaining("영문, 숫자, 특수문자");
     }
@@ -68,7 +65,7 @@ class PasswordTest {
         BirthDate birthDate = new BirthDate(birth);
 
         // when & then
-        assertThatThrownBy(() -> Password.of(invalidPw, birthDate))
+        assertThatThrownBy(() -> Password.validate(invalidPw, birthDate))
                 .isInstanceOf(CoreException.class)
                 .hasMessageContaining("생년월일");
     }

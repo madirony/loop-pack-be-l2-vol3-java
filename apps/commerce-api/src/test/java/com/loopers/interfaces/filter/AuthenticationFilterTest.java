@@ -24,9 +24,7 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-
 import java.util.Map;
-
 import static org.assertj.core.api.Assertions.assertThat;
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
@@ -146,6 +144,42 @@ class AuthenticationFilterTest {
 
             // assert
             assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
+        }
+
+        @DisplayName("public 경로와 접두사만 같은 경로는 인증이 필요하다. (예: /api/v1/members/signup-admin)")
+        @Test
+        void path_with_same_prefix_as_public_path_requires_auth() {
+            // arrange - /signup은 public이지만 /signup-admin은 public이 아님
+            String signupAdminPath = "/api/v1/members/signup-admin";
+
+            // act - 인증 없이 요청
+            ResponseEntity<ApiResponse<Object>> response = testRestTemplate.exchange(
+                    signupAdminPath,
+                    HttpMethod.GET,
+                    null,
+                    new ParameterizedTypeReference<>() {}
+            );
+
+            // assert - 인증이 필요하므로 401 반환 (404가 아닌 401이 먼저 반환됨)
+            assertThat(response.getStatusCode()).isEqualTo(HttpStatus.UNAUTHORIZED);
+        }
+
+        @DisplayName("public 경로의 하위 경로는 인증 없이 접근 가능하다. (예: /api/v1/members/signup/)")
+        @Test
+        void subpath_of_public_path_is_accessible_without_auth() {
+            // arrange - /signup의 하위 경로
+            String signupSubPath = "/api/v1/members/signup/something";
+
+            // act - 인증 없이 요청
+            ResponseEntity<ApiResponse<Object>> response = testRestTemplate.exchange(
+                    signupSubPath,
+                    HttpMethod.GET,
+                    null,
+                    new ParameterizedTypeReference<>() {}
+            );
+
+            // assert - public 경로의 하위 경로이므로 인증 통과 (404는 라우팅 문제)
+            assertThat(response.getStatusCode()).isNotEqualTo(HttpStatus.UNAUTHORIZED);
         }
     }
 }

@@ -4,24 +4,33 @@ import com.loopers.support.error.CoreException;
 import com.loopers.support.error.ErrorType;
 import jakarta.persistence.Embeddable;
 import lombok.AccessLevel;
+import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 @Getter
+@EqualsAndHashCode
 @Embeddable
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class Name {
 
+    private static final int MAX_LENGTH = 20;
+
     private String value;
 
     public Name(String value) {
-        validate(value);
-        this.value = value;
+        String trimmed = value != null ? value.trim() : null;
+        validate(trimmed);
+        this.value = trimmed;
     }
 
     private void validate(String value) {
         if (value == null || value.isBlank()) {
             throw new CoreException(ErrorType.BAD_REQUEST, "이름은 필수입니다.");
+        }
+
+        if (value.length() > MAX_LENGTH) {
+            throw new CoreException(ErrorType.BAD_REQUEST, "이름은 " + MAX_LENGTH + "자 이내여야 합니다.");
         }
     }
 

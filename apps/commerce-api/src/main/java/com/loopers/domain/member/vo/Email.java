@@ -4,12 +4,13 @@ import com.loopers.support.error.CoreException;
 import com.loopers.support.error.ErrorType;
 import jakarta.persistence.Embeddable;
 import lombok.AccessLevel;
+import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-
 import java.util.regex.Pattern;
 
 @Getter
+@EqualsAndHashCode
 @Embeddable
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class Email {
@@ -21,8 +22,9 @@ public class Email {
     private String value;
 
     public Email(String value) {
-        validate(value);
-        this.value = value;
+        String normalized = value != null ? value.toLowerCase() : null;
+        validate(normalized);
+        this.value = normalized;
     }
 
     private void validate(String value) {

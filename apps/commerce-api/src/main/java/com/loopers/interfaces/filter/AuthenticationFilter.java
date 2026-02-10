@@ -17,7 +17,6 @@ import org.springframework.core.annotation.Order;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Component;
-
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.Optional;
@@ -84,7 +83,14 @@ public class AuthenticationFilter implements Filter {
     }
 
     private boolean isPublicPath(String path) {
-        return PUBLIC_PATHS.stream().anyMatch(path::startsWith);
+        return PUBLIC_PATHS.stream().anyMatch(publicPath -> isPathMatch(path, publicPath));
+    }
+
+    private boolean isPathMatch(String requestPath, String publicPath) {
+        if (requestPath.equals(publicPath)) {
+            return true;
+        }
+        return requestPath.startsWith(publicPath + "/");
     }
 
     private void sendUnauthorizedResponse(HttpServletResponse response, String message) throws IOException {

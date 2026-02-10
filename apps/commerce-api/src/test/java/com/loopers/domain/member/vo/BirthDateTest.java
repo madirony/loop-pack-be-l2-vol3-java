@@ -6,7 +6,8 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
-
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
@@ -71,5 +72,30 @@ class BirthDateTest {
 
         // then
         assertThat(plain).isEqualTo("19970115");
+    }
+
+    @DisplayName("미래 날짜는 예외가 발생한다.")
+    @Test
+    void create_fail_future_date() {
+        // given
+        String futureDate = LocalDate.now().plusDays(1).format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
+
+        // when & then
+        assertThatThrownBy(() -> new BirthDate(futureDate))
+                .isInstanceOf(CoreException.class)
+                .extracting("errorType").isEqualTo(ErrorType.BAD_REQUEST);
+    }
+
+    @DisplayName("오늘 날짜는 생성에 성공한다.")
+    @Test
+    void create_success_today() {
+        // given
+        String today = LocalDate.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
+
+        // when
+        BirthDate birthDate = new BirthDate(today);
+
+        // then
+        assertThat(birthDate.getValue()).isEqualTo(today);
     }
 }

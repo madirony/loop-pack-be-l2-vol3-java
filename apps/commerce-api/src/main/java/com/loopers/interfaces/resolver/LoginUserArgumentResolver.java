@@ -1,6 +1,8 @@
 package com.loopers.interfaces.resolver;
 
 import com.loopers.domain.member.Member;
+import com.loopers.support.error.CoreException;
+import com.loopers.support.error.ErrorType;
 import jakarta.servlet.http.HttpServletRequest;
 import org.jspecify.annotations.NonNull;
 import org.springframework.core.MethodParameter;
@@ -23,6 +25,12 @@ public class LoginUserArgumentResolver implements HandlerMethodArgumentResolver 
     public Object resolveArgument(@NonNull MethodParameter parameter, ModelAndViewContainer mavContainer,
                                   NativeWebRequest webRequest, WebDataBinderFactory binderFactory) {
         HttpServletRequest request = (HttpServletRequest) webRequest.getNativeRequest();
-        return request.getAttribute("authenticatedMember");
+        Object attribute = request.getAttribute("authenticatedMember");
+
+        if (!(attribute instanceof Member)) {
+            throw new CoreException(ErrorType.UNAUTHORIZED, "인증 정보가 유효하지 않습니다.");
+        }
+
+        return attribute;
     }
 }

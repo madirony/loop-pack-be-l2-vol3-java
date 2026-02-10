@@ -303,6 +303,20 @@ class MemberV1ApiE2ETest {
 
             // assert
             assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
+
+            // 변경된 비밀번호로 /me API 호출하여 실제 로그인 검증
+            HttpHeaders newHeaders = new HttpHeaders();
+            newHeaders.set("X-Loopers-LoginId", "testuser");
+            newHeaders.set("X-Loopers-LoginPw", newPassword);
+            HttpEntity<Void> meEntity = new HttpEntity<>(newHeaders);
+
+            ResponseEntity<ApiResponse<MemberV1Dto.MeResponse>> meResponse = testRestTemplate.exchange(
+                    ME_ENDPOINT, HttpMethod.GET, meEntity,
+                    new ParameterizedTypeReference<>() {}
+            );
+
+            assertThat(meResponse.getStatusCode()).isEqualTo(HttpStatus.OK);
+            assertThat(meResponse.getBody().data().memberId()).isEqualTo("testuser");
         }
 
         @DisplayName("현재 비밀번호가 틀리면 400 BAD_REQUEST 응답을 받는다.")

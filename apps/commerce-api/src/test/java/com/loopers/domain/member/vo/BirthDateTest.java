@@ -23,7 +23,7 @@ class BirthDateTest {
         BirthDate birthDate = new BirthDate(birth);
 
         // then
-        assertThat(birthDate.getValue()).isEqualTo(birth);
+        assertThat(birthDate.getFormattedValue()).isEqualTo(birth);
     }
 
     @DisplayName("잘못된 형식의 생년월일은 예외가 발생한다.")
@@ -96,6 +96,6 @@ class BirthDateTest {
         BirthDate birthDate = new BirthDate(today);
 
         // then
-        assertThat(birthDate.getValue()).isEqualTo(today);
+        assertThat(birthDate.getFormattedValue()).isEqualTo(today);
     }
 }

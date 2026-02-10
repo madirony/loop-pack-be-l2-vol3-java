@@ -53,7 +53,7 @@ public class MemberV1Dto {
                     member.getMemberId().getValue(),
                     member.getName().masked(),
                     member.getEmail().getValue(),
-                    member.getBirthDate().getValue()
+                    member.getBirthDate().getFormattedValue()
             );
         }
     }

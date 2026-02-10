@@ -44,15 +44,15 @@ public class BirthDate {
         }
     }
 
-    public String getValue() {
-        return value.format(FORMATTER);
-    }
-
-    public LocalDate getDate() {
+    public LocalDate getValue() {
         return value;
     }
 
+    public String getFormattedValue() {
+        return value.format(FORMATTER);
+    }
+
     public String toPlainString() {
-        return getValue().replaceAll("-", "");
+        return getFormattedValue().replaceAll("-", "");
     }
 }

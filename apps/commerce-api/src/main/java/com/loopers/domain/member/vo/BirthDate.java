@@ -5,12 +5,14 @@ import com.loopers.support.error.ErrorType;
 import jakarta.persistence.Embeddable;
 import lombok.AccessLevel;
 import lombok.EqualsAndHashCode;
+import lombok.Getter;
 import lombok.NoArgsConstructor;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
 import java.time.format.ResolverStyle;
 
+@Getter
 @EqualsAndHashCode
 @Embeddable
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
@@ -42,10 +44,6 @@ public class BirthDate {
         if (date.isAfter(LocalDate.now())) {
             throw new CoreException(ErrorType.BAD_REQUEST, "생년월일은 미래 날짜일 수 없습니다.");
         }
-    }
-
-    public LocalDate getValue() {
-        return value;
     }
 
     public String getFormattedValue() {
